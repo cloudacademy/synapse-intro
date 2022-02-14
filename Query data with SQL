@@ -1,0 +1,43 @@
+/* Let's first get familiar with the NYC Taxi data by running the following query: */
+
+SELECT TOP 100 * FROM
+    OPENROWSET(
+        BULK 'https://azureopendatastorage.blob.core.windows.net/nyctlc/yellow/puYear=2019/puMonth=*/*.parquet',
+        FORMAT='PARQUET'
+    ) AS [nyc]
+
+
+/* Similarly, you can query the Public Holidays dataset by using the following query: */
+
+SELECT TOP 100 * FROM
+    OPENROWSET(
+        BULK 'https://azureopendatastorage.blob.core.windows.net/holidaydatacontainer/Processed/*.parquet',
+        FORMAT='PARQUET'
+    ) AS [holidays]
+
+
+/* Lastly, you can also query the Weather Data dataset by using the following query: */
+
+SELECT
+    TOP 100 *
+FROM  
+    OPENROWSET(
+        BULK 'https://azureopendatastorage.blob.core.windows.net/isdweatherdatacontainer/ISDWeather/year=2018/month=*/*.parquet',
+        FORMAT='PARQUET'
+    ) AS [weather]
+
+
+/* Time series, seasonality, and outlier analysis *
+You can easily summarize the yearly number of taxi rides by using the following query */
+
+SELECT
+    YEAR(tpepPickupDateTime) AS current_year,
+    COUNT(*) AS rides_per_year
+FROM
+    OPENROWSET(
+        BULK 'https://azureopendatastorage.blob.core.windows.net/nyctlc/yellow/puYear=*/puMonth=*/*.parquet',
+        FORMAT='PARQUET'
+    ) AS [nyc]
+WHERE nyc.filepath(1) >= '2014' AND nyc.filepath(1) <= '2019'
+GROUP BY YEAR(tpepPickupDateTime)
+ORDER BY 1 ASC
